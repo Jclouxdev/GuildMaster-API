@@ -1,0 +1,9 @@
+dist
+node_modules
+coverage
+.docker
+.github
+.husky
+.vscode
+.eslintrc.js
+jest.config.js
