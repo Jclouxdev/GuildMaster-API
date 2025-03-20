@@ -62,7 +62,7 @@ describe('Character Entity', () => {
       const character = new Character();
       character.class = 'Warrior';
       character.specializationId = 72; // Arms spec ID
-      const role = ERoles.Dps;
+      const role = ERoles.DPS;
 
       // Act
       const result = character.isRoleEligible(role);
@@ -76,7 +76,7 @@ describe('Character Entity', () => {
       const character = new Character();
       character.class = 'Warrior';
       character.specializationId = 73; // Protection spec ID
-      const role = 'DPS';
+      const role = ERoles.DPS;
 
       // Act
       const result = character.isRoleEligible(role);

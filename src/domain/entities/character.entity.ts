@@ -12,13 +12,13 @@ export class Character {
   // Map des spécialisations et leurs rôles
   private static readonly SPEC_ROLES = {
     // Warrior specs
-    71: ERoles.Dps, // Arms
-    72: ERoles.Dps, // Fury
-    73: ERoles.Tank, // Protection
+    71: ERoles.DPS, // Arms
+    72: ERoles.DPS, // Fury
+    73: ERoles.TANK, // Protection
     // Paladin specs
-    65: ERoles.Tank, // Protection
-    66: ERoles.Healer, // Holy
-    70: ERoles.Dps, // Retribution
+    65: ERoles.TANK, // Protection
+    66: ERoles.HEALER, // Holy
+    70: ERoles.DPS, // Retribution
     // Etc. pour toutes les autres classes/specs
   };
 

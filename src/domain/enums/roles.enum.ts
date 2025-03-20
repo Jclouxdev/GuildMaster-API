@@ -1,6 +1,6 @@
 export enum ERoles {
-  Tank = 'Tank',
-  Healer = 'Healer',
-  Dps = 'Dps',
-  Support = 'Support',
+  TANK = 'Tank',
+  HEALER = 'Healer',
+  DPS = 'Dps',
+  SUPPORT = 'Support',
 }
