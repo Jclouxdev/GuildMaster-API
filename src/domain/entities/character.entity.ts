@@ -23,7 +23,7 @@ export class Character {
   };
 
   canJoinRaid(): boolean {
-    return this.level >= 70;
+    return this.level >= 80;
   }
 
   hasRequiredItemLevel(requiredItemLevel: number): boolean {
