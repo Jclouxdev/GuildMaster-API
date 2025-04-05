@@ -1,7 +1,12 @@
 services:
   api:
     build: .
-    command: npm run start:dev
+    # First time
+    command: >
+      sh -c "npm install && npm run start"
+    # After first time
+    # command: >
+    #   sh -c "npm run start"
     volumes:
       - .:/usr/src/app/
     ports:
