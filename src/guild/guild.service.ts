@@ -49,10 +49,24 @@ export class GuildService {
     return this.guildsRepository.save(guild);
   }
 
-  // async findAll(): Promise<GuildEntity[]> {
-  //   return await this.guildsRepository.find({ relations: ['owner', 'creator'] });
-  // }
-  //
+  async findAll(): Promise<GuildEntity[]> {
+    return await this.guildsRepository.find({
+      relations: ['owner', 'creator'],
+      select: {
+        owner: {
+          id: true,
+          username: true,
+          email: true,
+        },
+        creator: {
+          id: true,
+          username: true,
+          email: true,
+        },
+      },
+    });
+  }
+
   // findOne(id: number) {
   //   return `This action returns a #${id} guild`;
   // }

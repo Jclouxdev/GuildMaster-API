@@ -13,10 +13,10 @@ export class GuildController {
     return await this.guildService.create(createGuildDto);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.guildService.findAll();
-  // }
+  @Get()
+  findAll() {
+    return this.guildService.findAll();
+  }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {
