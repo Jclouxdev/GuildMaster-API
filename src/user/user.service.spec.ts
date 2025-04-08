@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
+import { ERegions } from '../shared/enums/Regions';
 
 describe('UsersService', () => {
   let usersService: UserService;
@@ -40,7 +41,7 @@ describe('UsersService', () => {
       username: 'testuser',
       email: 'test@example.com',
       password: 'Password123!',
-      region: 'EU',
+      region: [ERegions.EU, ERegions.US],
     };
 
     // Mock des méthodes du repository
@@ -66,7 +67,7 @@ describe('UsersService', () => {
       username: 'testuser',
       email: 'existing@example.com',
       password: 'Password123!',
-      region: 'EU',
+      region: [ERegions.EU, ERegions.US],
     };
 
     // Mock d'un utilisateur existant

@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, Index } from 'typeorm';
-import { IsEmail, IsNotEmpty, IsEnum, Length } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsEnum, Length, ArrayNotEmpty } from 'class-validator';
 import { IUser } from '../interfaces/user.interface';
 import * as bcrypt from 'bcrypt';
 import * as process from 'node:process';
 import { Exclude } from 'class-transformer';
+import { ERegions } from '../../shared/enums/Regions';
 
 @Entity('users')
 @Index(['email', 'username'])
@@ -16,10 +17,11 @@ export class UserEntity implements IUser {
   @Column({ type: 'varchar', length: 50 })
   username: string;
 
-  @IsNotEmpty()
-  @IsEnum(['EU', 'NA', 'ASIA'])
-  @Column({ type: 'enum', enum: ['EU', 'NA', 'ASIA'] })
-  region: 'EU' | 'NA' | 'ASIA';
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
+  @IsEnum(ERegions, { each: true })
+  @Column({ type: 'enum', enum: ERegions, array: true })
+  region: ERegions[];
 
   @IsNotEmpty()
   @IsEmail()
