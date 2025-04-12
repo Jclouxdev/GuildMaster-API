@@ -1,10 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BeforeInsert,
+  BeforeUpdate,
+  Index,
+  OneToMany,
+} from 'typeorm';
 import { IsEmail, IsNotEmpty, IsEnum, Length, ArrayNotEmpty } from 'class-validator';
 import { IUser } from '../interfaces/user.interface';
 import * as bcrypt from 'bcrypt';
 import * as process from 'node:process';
 import { Exclude } from 'class-transformer';
 import { ERegions } from '../../shared/enums/Regions';
+import { GuildEntity } from '../../guild/entities/guild.entity';
+import { GuildMembershipEntity } from '../../guild-membership/entities/guild-membership.entity';
 
 @Entity('users')
 @Index(['email', 'username'])
@@ -51,6 +61,12 @@ export class UserEntity implements IUser {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @OneToMany(() => GuildEntity, guild => guild.owner)
+  createdGuilds: GuildEntity[];
+
+  @OneToMany(() => GuildMembershipEntity, guildMembership => guildMembership.user)
+  guildMemberships: GuildMembershipEntity[];
 
   @BeforeInsert()
   async hashPasswordBeforeInsert(): Promise<void> {

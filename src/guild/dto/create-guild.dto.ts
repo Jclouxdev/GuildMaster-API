@@ -12,6 +12,7 @@ import {
 import { MAXIMUM_GUILD_MEMBERS_POSSIBLE } from '../../shared/constants/Guild';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserEntity } from '../../user/entities/user.entity';
+import { IGuild } from '../interfaces/guild.interface';
 
 export class CreateGuildDto {
   @IsNotEmpty()

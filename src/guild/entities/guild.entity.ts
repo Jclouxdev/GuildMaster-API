@@ -1,9 +1,10 @@
 import { IGuild } from '../interfaces/guild.interface';
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsEnum, IsNotEmpty, IsOptional, Length, Max } from 'class-validator';
 import { UserEntity } from '../../user/entities/user.entity';
 import { ERegions } from '../../shared/enums/Regions';
 import { MAXIMUM_GUILD_MEMBERS_POSSIBLE } from '../../shared/constants/Guild';
+import { GuildMembershipEntity } from '../../guild-membership/entities/guild-membership.entity';
 
 @Entity('guild')
 export class GuildEntity implements IGuild {
@@ -20,15 +21,13 @@ export class GuildEntity implements IGuild {
   @Column({ type: 'varchar', length: 255 })
   description: string;
 
-  // TODO: Fix joint because no FK currently
   @IsNotEmpty()
-  @OneToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity)
   @JoinColumn()
   owner: UserEntity;
 
-  // TODO: Fix joint because no FK currently
   @IsOptional()
-  @OneToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity)
   @JoinColumn()
   creator: UserEntity;
 
@@ -36,6 +35,9 @@ export class GuildEntity implements IGuild {
   @IsEnum(ERegions)
   @Column({ type: 'enum', enum: ERegions })
   region: ERegions;
+
+  @ManyToOne(() => GuildMembershipEntity, guildMembership => guildMembership.guild)
+  memberships: GuildMembershipEntity[];
 
   @IsNotEmpty()
   @Column({ type: 'int' })
@@ -47,4 +49,8 @@ export class GuildEntity implements IGuild {
 
   @Column({ type: 'varchar', array: true, nullable: true })
   tags?: string[];
+
+  isFull(): boolean {
+    return this.memberships.length >= this.maximumMembersAllowed;
+  }
 }

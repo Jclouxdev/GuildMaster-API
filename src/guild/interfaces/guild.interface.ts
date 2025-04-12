@@ -1,5 +1,6 @@
 import { ERegions } from '../../shared/enums/Regions';
 import { UserEntity } from '../../user/entities/user.entity';
+import { GuildMembershipEntity } from '../../guild-membership/entities/guild-membership.entity';
 
 export interface IGuild {
   id?: string;
@@ -11,4 +12,7 @@ export interface IGuild {
   maximumMembersAllowed: number;
   createdAt?: Date;
   tags?: string[];
+  memberships?: GuildMembershipEntity[];
+
+  isFull(): boolean;
 }
