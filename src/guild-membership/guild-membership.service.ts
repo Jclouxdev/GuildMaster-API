@@ -5,9 +5,8 @@ import { GuildMembershipEntity } from './entities/guild-membership.entity';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../user/entities/user.entity';
 import { GuildEntity } from '../guild/entities/guild.entity';
-import { UserService } from '../user/user.service';
-import { GuildService } from '../guild/guild.service';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EGuildStatus } from '../shared/enums/Guilds';
 
 @Injectable()
 export class GuildMembershipService {
@@ -35,17 +34,18 @@ export class GuildMembershipService {
     if (!guild) {
       throw new Error('Guild not found');
     }
-    const getGuildMemberships = await this.guildMembershipRepository.find({
-      where: { guild: { id: guild.id } },
-    });
-    if (getGuildMemberships.length >= guild.maximumMembersAllowed) {
+    const getActiveMemberships = await this.getActiveGuildMemberships(
+      createGuildMembershipDto.guildId,
+    );
+    if (getActiveMemberships.length >= guild.maximumMembersAllowed) {
       throw new Error('Guild is full');
     }
 
     const existingMembership = await this.guildMembershipRepository.findOne({
       where: {
-        user: { id: user.id },
-        guild: { id: guild.id },
+        user: { id: createGuildMembershipDto.userId },
+        guild: { id: createGuildMembershipDto.guildId },
+        status: EGuildStatus.PENDING || EGuildStatus.ACTIVE || EGuildStatus.INVITED,
       },
     });
     if (existingMembership) {
@@ -56,6 +56,15 @@ export class GuildMembershipService {
     newGuildMembership.guild = guild;
 
     return this.guildMembershipRepository.save(newGuildMembership);
+  }
+
+  private async getActiveGuildMemberships(guildId: string): Promise<GuildMembershipEntity[]> {
+    return this.guildMembershipRepository.find({
+      where: {
+        guild: { id: guildId },
+        status: EGuildStatus.ACTIVE,
+      },
+    });
   }
 
   findAll() {
