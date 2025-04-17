@@ -1,9 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import { GuildMembershipService } from './guild-membership.service';
 import { CreateGuildMembershipDto } from './dto/create-guild-membership.dto';
 import { UpdateGuildMembershipDto } from './dto/update-guild-membership.dto';
 
 @Controller('guild-membership')
+@UseInterceptors(ClassSerializerInterceptor)
 export class GuildMembershipController {
   constructor(private readonly guildMembershipService: GuildMembershipService) {}
 
@@ -17,9 +28,14 @@ export class GuildMembershipController {
     return this.guildMembershipService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.guildMembershipService.findOne(+id);
+  @Get('guild/:guildId')
+  findAllByGuild(@Param('guildId') guildId: string) {
+    return this.guildMembershipService.findAllByGuild(guildId);
+  }
+
+  @Get('user/:userId')
+  findAllByUser(@Param('userId') userId: string, @Body() requestUserId: string) {
+    return this.guildMembershipService.findAllByUser(userId, requestUserId);
   }
 
   @Patch(':id')

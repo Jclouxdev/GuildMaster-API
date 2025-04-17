@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '../user/entities/user.entity';
 import { GuildEntity } from '../guild/entities/guild.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EGuildStatus } from '../shared/enums/Guilds';
+import { EGuildRoles, EGuildStatus } from '../shared/enums/Guilds';
 
 @Injectable()
 export class GuildMembershipService {
@@ -85,15 +85,104 @@ export class GuildMembershipService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} guildMembership`;
+  async update(id: number, updateGuildMembershipDto: UpdateGuildMembershipDto) {
+    const guildMembership = await this.guildMembershipRepository.findOne({ where: { id } });
+    if (!guildMembership) {
+      throw new Error('Guild membership not found');
+    }
+    if (!(await this.doesUserExist(updateGuildMembershipDto.userId))) {
+      throw new Error('User not found');
+    }
+    if (!(await this.doesGuildExist(updateGuildMembershipDto.guildId))) {
+      throw new Error('Guild not found');
+    }
+    return this.guildMembershipRepository.update(id, updateGuildMembershipDto);
   }
 
-  update(id: number, updateGuildMembershipDto: UpdateGuildMembershipDto) {
-    return `This action updates a #${id} guildMembership`;
+  async remove(id: number) {
+    const guildMembership = await this.guildMembershipRepository.findOne({ where: { id } });
+    if (!guildMembership) {
+      throw new Error('Guild membership not found');
+    }
+    return this.guildMembershipRepository.delete(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} guildMembership`;
+  //TODO: remove user condition when login is implemented
+  async findAllByGuild(guildId: string, userId?: string): Promise<GuildMembershipEntity[]> {
+    if (!(await this.doesGuildExist(guildId))) {
+      throw new Error('Guild not found');
+    }
+    if (userId && !(await this.doesUserExist(userId))) {
+      throw new Error('User not found');
+    }
+
+    const guildMemberships = await this.guildMembershipRepository.find({
+      where: {
+        guild: { id: guildId },
+      },
+      relations: ['user'],
+    });
+    if (!guildMemberships) {
+      throw new Error('No memberships found for this guild');
+    }
+
+    if (userId) {
+      const isMember = guildMemberships.some(membership => membership.user.id === userId);
+      if (!isMember) {
+        throw new Error('User is not a member of this guild');
+      }
+    }
+    if (userId && !(await this.isUserAuthorizedToViewMemberships(userId, guildId))) {
+      throw new Error('User is not authorized to view this guild membership');
+    }
+
+    return guildMemberships;
+  }
+
+  async findAllByUser(userId: string, requestUserId: string): Promise<GuildMembershipEntity[]> {
+    if (userId !== requestUserId) {
+      throw new Error('User is not authorized to view theses guild memberships');
+    }
+    if (!(await this.doesUserExist(userId))) {
+      throw new Error('User not found');
+    }
+    const guildMemberships = await this.guildMembershipRepository.find({
+      where: {
+        user: { id: userId },
+      },
+      relations: ['user', 'guild'],
+    });
+    if (!guildMemberships) {
+      throw new Error('No memberships found for this user');
+    }
+    return guildMemberships;
+  }
+
+  // Utilities functions
+  private async doesGuildExist(guildId: string): Promise<boolean> {
+    const guild = await this.guildRepository.findOne({ where: { id: guildId } });
+    return !!guild;
+  }
+
+  private async doesUserExist(userId: string): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    return !!user;
+  }
+
+  private async isUserAuthorizedToViewMemberships(
+    userId: string,
+    guildId: string,
+  ): Promise<boolean> {
+    const guildMembership = await this.guildMembershipRepository.findOne({
+      where: {
+        user: { id: userId },
+        guild: { id: guildId },
+      },
+    });
+    return (
+      guildMembership &&
+      (guildMembership.role === EGuildRoles.GUILD_MASTER ||
+        guildMembership.role === EGuildRoles.OFFICIER)
+    );
   }
 }
