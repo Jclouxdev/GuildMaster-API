@@ -30,12 +30,12 @@ export class GuildMembershipController {
 
   @Get('guild/:guildId')
   findAllByGuild(@Param('guildId') guildId: string) {
-    return this.guildMembershipService.findAllByGuild(guildId);
+    return this.guildMembershipService.findAllByGuildId(guildId);
   }
 
   @Get('user/:userId')
-  findAllByUser(@Param('userId') userId: string, @Body() requestUserId: string) {
-    return this.guildMembershipService.findAllByUser(userId, requestUserId);
+  findAllByUser(@Param('userId') userId: string) {
+    return this.guildMembershipService.findAllByUserId(userId);
   }
 
   @Patch(':id')

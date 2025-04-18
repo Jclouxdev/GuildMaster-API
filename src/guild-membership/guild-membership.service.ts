@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGuildMembershipDto } from './dto/create-guild-membership.dto';
 import { UpdateGuildMembershipDto } from './dto/update-guild-membership.dto';
 import { GuildMembershipEntity } from './entities/guild-membership.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UserEntity } from '../user/entities/user.entity';
 import { GuildEntity } from '../guild/entities/guild.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EGuildRoles, EGuildStatus } from '../shared/enums/Guilds';
+import { EGuildStatus } from '../shared/enums/Guilds';
 
 @Injectable()
 export class GuildMembershipService {
@@ -20,51 +20,21 @@ export class GuildMembershipService {
   ) {}
 
   async create(createGuildMembershipDto: CreateGuildMembershipDto): Promise<GuildMembershipEntity> {
-    const newGuildMembership = this.guildMembershipRepository.create(createGuildMembershipDto);
-    const user = await this.userRepository.findOne({
-      where: { id: createGuildMembershipDto.userId },
-    });
-    if (!user) {
-      throw new Error('User not found');
-    }
+    const user = await this.findUserById(createGuildMembershipDto.userId);
+    const guild = await this.findGuildById(createGuildMembershipDto.guildId);
 
-    const guild = await this.guildRepository.findOne({
-      where: { id: createGuildMembershipDto.guildId },
-    });
-    if (!guild) {
-      throw new Error('Guild not found');
-    }
-    const getActiveMemberships = await this.getActiveGuildMemberships(
+    await this.checkGuildCapacity(guild);
+
+    await this.checkExistingMembership(
+      createGuildMembershipDto.userId,
       createGuildMembershipDto.guildId,
     );
-    if (getActiveMemberships.length >= guild.maximumMembersAllowed) {
-      throw new Error('Guild is full');
-    }
 
-    const existingMembership = await this.guildMembershipRepository.findOne({
-      where: {
-        user: { id: createGuildMembershipDto.userId },
-        guild: { id: createGuildMembershipDto.guildId },
-        status: EGuildStatus.PENDING || EGuildStatus.ACTIVE || EGuildStatus.INVITED,
-      },
-    });
-    if (existingMembership) {
-      throw new Error('User is already a member of this guild or has a pending request');
-    }
-
+    const newGuildMembership = this.guildMembershipRepository.create(createGuildMembershipDto);
     newGuildMembership.user = user;
     newGuildMembership.guild = guild;
 
     return this.guildMembershipRepository.save(newGuildMembership);
-  }
-
-  private async getActiveGuildMemberships(guildId: string): Promise<GuildMembershipEntity[]> {
-    return this.guildMembershipRepository.find({
-      where: {
-        guild: { id: guildId },
-        status: EGuildStatus.ACTIVE,
-      },
-    });
   }
 
   findAll() {
@@ -86,103 +56,108 @@ export class GuildMembershipService {
   }
 
   async update(id: number, updateGuildMembershipDto: UpdateGuildMembershipDto) {
-    const guildMembership = await this.guildMembershipRepository.findOne({ where: { id } });
-    if (!guildMembership) {
-      throw new Error('Guild membership not found');
-    }
-    if (!(await this.doesUserExist(updateGuildMembershipDto.userId))) {
-      throw new Error('User not found');
-    }
-    if (!(await this.doesGuildExist(updateGuildMembershipDto.guildId))) {
-      throw new Error('Guild not found');
-    }
+    await this.findMembershipById(id);
+    await this.findUserById(updateGuildMembershipDto.userId);
+    await this.findGuildById(updateGuildMembershipDto.guildId);
     return this.guildMembershipRepository.update(id, updateGuildMembershipDto);
   }
 
   async remove(id: number) {
-    const guildMembership = await this.guildMembershipRepository.findOne({ where: { id } });
-    if (!guildMembership) {
-      throw new Error('Guild membership not found');
-    }
+    await this.findMembershipById(id);
     return this.guildMembershipRepository.delete(id);
   }
 
-  //TODO: remove user condition when login is implemented
-  async findAllByGuild(guildId: string, userId?: string): Promise<GuildMembershipEntity[]> {
-    if (!(await this.doesGuildExist(guildId))) {
-      throw new Error('Guild not found');
-    }
-    if (userId && !(await this.doesUserExist(userId))) {
-      throw new Error('User not found');
-    }
+  async findAllByGuildId(guildId: string): Promise<GuildMembershipEntity[]> {
+    const guild = await this.findGuildById(guildId);
+    return await this.findMembershipsByGuild(guild);
+  }
 
-    const guildMemberships = await this.guildMembershipRepository.find({
-      where: {
-        guild: { id: guildId },
-      },
+  async findAllByUserId(userId: string): Promise<GuildMembershipEntity[]> {
+    const user = await this.findUserById(userId);
+    return await this.findMembershipsByUser(user);
+  }
+
+  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+  //                          Privates Functions                         //
+  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+  private async findUserById(userId: string): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    return user;
+  }
+
+  private async findGuildById(guildId: string): Promise<GuildEntity> {
+    const guild = await this.guildRepository.findOne({ where: { id: guildId } });
+    if (!guild) {
+      throw new NotFoundException(`Guild with ID ${guildId} not found`);
+    }
+    return guild;
+  }
+
+  private async findMembershipById(membershipId: number): Promise<GuildMembershipEntity> {
+    const membership = await this.guildMembershipRepository.findOne({
+      where: { id: membershipId },
+    });
+    if (!membership) {
+      throw new NotFoundException(`Membership with ID ${membershipId} not found`);
+    }
+    return membership;
+  }
+
+  private async findMembershipsByGuild(guild: GuildEntity): Promise<GuildMembershipEntity[]> {
+    const membership = await this.guildMembershipRepository.find({
+      where: { guild: { id: guild.id } },
       relations: ['user'],
     });
-    if (!guildMemberships) {
-      throw new Error('No memberships found for this guild');
+    if (!membership) {
+      throw new NotFoundException(`Membership with Guild ID ${guild.id} not found`);
     }
-
-    if (userId) {
-      const isMember = guildMemberships.some(membership => membership.user.id === userId);
-      if (!isMember) {
-        throw new Error('User is not a member of this guild');
-      }
-    }
-    if (userId && !(await this.isUserAuthorizedToViewMemberships(userId, guildId))) {
-      throw new Error('User is not authorized to view this guild membership');
-    }
-
-    return guildMemberships;
+    return membership;
   }
 
-  async findAllByUser(userId: string, requestUserId: string): Promise<GuildMembershipEntity[]> {
-    if (userId !== requestUserId) {
-      throw new Error('User is not authorized to view theses guild memberships');
-    }
-    if (!(await this.doesUserExist(userId))) {
-      throw new Error('User not found');
-    }
-    const guildMemberships = await this.guildMembershipRepository.find({
-      where: {
-        user: { id: userId },
-      },
-      relations: ['user', 'guild'],
+  private async findMembershipsByUser(user: UserEntity): Promise<GuildMembershipEntity[]> {
+    const membership = await this.guildMembershipRepository.find({
+      where: { user: { id: user.id } },
+      relations: ['user'],
     });
-    if (!guildMemberships) {
-      throw new Error('No memberships found for this user');
+    if (!membership) {
+      throw new NotFoundException(`Memberships for User ID ${user.id} not found`);
     }
-    return guildMemberships;
+    return membership;
   }
 
-  // Utilities functions
-  private async doesGuildExist(guildId: string): Promise<boolean> {
-    const guild = await this.guildRepository.findOne({ where: { id: guildId } });
-    return !!guild;
+  private async checkGuildCapacity(guild: GuildEntity): Promise<void> {
+    const activeMembers = await this.getActiveGuildMemberships(guild.id);
+
+    if (activeMembers.length >= guild.maximumMembersAllowed) {
+      throw new BadRequestException('Guild is full');
+    }
   }
 
-  private async doesUserExist(userId: string): Promise<boolean> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    return !!user;
+  private async getActiveGuildMemberships(guildId: string): Promise<GuildMembershipEntity[]> {
+    return this.guildMembershipRepository.find({
+      where: {
+        guild: { id: guildId },
+        status: EGuildStatus.ACTIVE,
+      },
+    });
   }
 
-  private async isUserAuthorizedToViewMemberships(
-    userId: string,
-    guildId: string,
-  ): Promise<boolean> {
-    const guildMembership = await this.guildMembershipRepository.findOne({
+  private async checkExistingMembership(userId: string, guildId: string): Promise<void> {
+    const existingMembership = await this.guildMembershipRepository.findOne({
       where: {
         user: { id: userId },
         guild: { id: guildId },
+        status: In([EGuildStatus.PENDING, EGuildStatus.ACTIVE, EGuildStatus.INVITED]),
       },
     });
-    return (
-      guildMembership &&
-      (guildMembership.role === EGuildRoles.GUILD_MASTER ||
-        guildMembership.role === EGuildRoles.OFFICIER)
-    );
+
+    if (existingMembership) {
+      throw new BadRequestException(
+        `User is already a member of this guild or has a pending request for the guild with id : ${guildId}`,
+      );
+    }
   }
 }
