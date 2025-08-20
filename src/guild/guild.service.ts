@@ -55,12 +55,14 @@ export class GuildService {
       select: {
         owner: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
         creator: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -74,12 +76,14 @@ export class GuildService {
       select: {
         owner: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
         creator: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -99,12 +103,14 @@ export class GuildService {
       select: {
         owner: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
         creator: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -122,12 +128,14 @@ export class GuildService {
       select: {
         owner: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
         creator: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },

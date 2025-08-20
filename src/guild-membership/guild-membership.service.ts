@@ -43,7 +43,8 @@ export class GuildMembershipService {
       select: {
         user: {
           id: true,
-          username: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
         guild: {
@@ -55,14 +56,14 @@ export class GuildMembershipService {
     });
   }
 
-  async update(id: number, updateGuildMembershipDto: UpdateGuildMembershipDto) {
+  async update(id: string, updateGuildMembershipDto: UpdateGuildMembershipDto) {
     await this.findMembershipById(id);
     await this.findUserById(updateGuildMembershipDto.userId);
     await this.findGuildById(updateGuildMembershipDto.guildId);
     return this.guildMembershipRepository.update(id, updateGuildMembershipDto);
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     await this.findMembershipById(id);
     return this.guildMembershipRepository.delete(id);
   }
@@ -96,7 +97,7 @@ export class GuildMembershipService {
     return guild;
   }
 
-  private async findMembershipById(membershipId: number): Promise<GuildMembershipEntity> {
+  private async findMembershipById(membershipId: string): Promise<GuildMembershipEntity> {
     const membership = await this.guildMembershipRepository.findOne({
       where: { id: membershipId },
     });

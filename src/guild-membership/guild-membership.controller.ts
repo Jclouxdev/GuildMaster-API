@@ -40,11 +40,11 @@ export class GuildMembershipController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateGuildMembershipDto: UpdateGuildMembershipDto) {
-    return this.guildMembershipService.update(+id, updateGuildMembershipDto);
+    return this.guildMembershipService.update(id, updateGuildMembershipDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.guildMembershipService.remove(+id);
+    return this.guildMembershipService.remove(id);
   }
 }
