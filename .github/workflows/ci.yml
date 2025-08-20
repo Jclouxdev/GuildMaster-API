@@ -160,7 +160,7 @@ jobs:
           echo "Setting up Railway project configuration..."
           echo '{"project": "${{ secrets.RAILWAY_PROJECT_ID }}"}' > railway.json
           echo "Deploying to staging environment..."
-          railway up --detach
+          railway up --service GuildMaster-API --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
@@ -183,7 +183,7 @@ jobs:
           echo "Setting up Railway project configuration..."
           echo '{"project": "${{ secrets.RAILWAY_PROJECT_ID }}"}' > railway.json
           echo "Deploying to production environment..."
-          railway up --detach
+          railway up --service GuildMaster-API --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
@@ -222,6 +222,6 @@ jobs:
           else
             echo "Deploying to STAGING..."
           fi
-          railway up --detach
+          railway up --service GuildMaster-API --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
