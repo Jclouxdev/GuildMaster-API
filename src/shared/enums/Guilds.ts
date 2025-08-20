@@ -1,8 +1,7 @@
 export enum EGuildRoles {
-  GUILD_MASTER = 'GUILD_MASTER', // Le chef de la guilde
-  OFFICIER = 'OFFICIER', // Un officier de la guilde
-  MEMBER = 'MEMBER', // Un membre de la guilde
-  APPLICANT = 'APPLICANT', // Un candidat à la guilde
+  GUILD_MASTER = 'Guild Master', // Le chef de la guilde
+  OFFICER = 'Officer', // Un officier de la guilde
+  MEMBER = 'Member', // Un membre de la guilde
 }
 
 export enum EGuildStatus {

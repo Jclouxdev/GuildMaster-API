@@ -1,15 +1,7 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  MinLength,
-  MaxLength,
-  Matches,
-} from 'class-validator';
-import { IUser } from '../interfaces/user.interface';
+import { IsEmail, IsNotEmpty, MinLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { EGuildRoles } from '../../shared/enums/Guilds';
 
-export class CreateUserDto implements Omit<IUser, 'id' | 'guildRole' | 'emailVerified' | 'createdAt' | 'updatedAt'> {
+export class RegisterDto {
   @IsNotEmpty()
   @IsEmail()
   @ApiProperty({
@@ -31,7 +23,6 @@ export class CreateUserDto implements Omit<IUser, 'id' | 'guildRole' | 'emailVer
 
   @IsNotEmpty()
   @MinLength(2)
-  @MaxLength(50)
   @Matches(/^[a-zA-Z\s\-]+$/, {
     message: 'First name can only contain letters, spaces and hyphens'
   })
@@ -43,7 +34,6 @@ export class CreateUserDto implements Omit<IUser, 'id' | 'guildRole' | 'emailVer
 
   @IsNotEmpty()
   @MinLength(2)
-  @MaxLength(50)
   @Matches(/^[a-zA-Z\s\-]+$/, {
     message: 'Last name can only contain letters, spaces and hyphens'
   })
@@ -52,7 +42,4 @@ export class CreateUserDto implements Omit<IUser, 'id' | 'guildRole' | 'emailVer
     example: 'Doe',
   })
   lastName: string;
-
-  // passwordHash sera généré automatiquement par l'entité
-  passwordHash?: string;
 }

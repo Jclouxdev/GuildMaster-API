@@ -4,19 +4,23 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
+  Index,
 } from 'typeorm';
 import { GuildEntity } from '../../guild/entities/guild.entity';
 import { EGuildRoles, EGuildStatus } from '../../shared/enums/Guilds';
 import { IsNotEmpty } from 'class-validator';
 
-@Entity('guild_membership')
+@Entity('guild_memberships')
+@Index(['user', 'guild'], { unique: true }) // Empêche les doublons
+@Index(['user', 'status'], { 
+  unique: true, 
+  where: "status = 'ACTIVE'" // Un seul membership actif par utilisateur
+})
 export class GuildMembershipEntity implements IGuildMembership {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid') // Changé en UUID pour cohérence
+  id: string;
 
   @ManyToOne(() => UserEntity, user => user.guildMemberships)
   @JoinColumn()
@@ -28,7 +32,7 @@ export class GuildMembershipEntity implements IGuildMembership {
   @IsNotEmpty()
   guild: GuildEntity;
 
-  @Column({ type: 'enum', enum: EGuildRoles, default: EGuildRoles.APPLICANT })
+  @Column({ type: 'enum', enum: EGuildRoles, default: EGuildRoles.MEMBER })
   @IsNotEmpty()
   role: EGuildRoles;
 

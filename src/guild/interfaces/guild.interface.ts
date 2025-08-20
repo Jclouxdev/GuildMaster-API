@@ -11,6 +11,7 @@ export interface IGuild {
   region: ERegions;
   maximumMembersAllowed: number;
   createdAt?: Date;
+  updatedAt?: Date;
   tags?: string[];
   memberships?: GuildMembershipEntity[];
 

@@ -1,10 +1,13 @@
-import { ERegions } from '../../shared/enums/Regions';
+import { EGuildRoles } from '../../shared/enums/Guilds';
 
 export interface IUser {
   id?: string;
-  username: string;
   email: string;
-  region: ERegions[];
+  firstName: string;
+  lastName: string;
+  guildRole: EGuildRoles;
+  passwordHash?: string;
+  emailVerified?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
