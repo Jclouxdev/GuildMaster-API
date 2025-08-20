@@ -62,7 +62,7 @@ describe('Auth (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     userRepository = moduleFixture.get(getRepositoryToken(UserEntity));
-    
+
     await app.init();
   });
 

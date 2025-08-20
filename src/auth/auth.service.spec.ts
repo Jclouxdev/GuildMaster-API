@@ -118,9 +118,7 @@ describe('AuthService', () => {
     it('should throw ConflictException if user already exists', async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { email: registerDto.email },
       });
@@ -141,10 +139,7 @@ describe('AuthService', () => {
 
       const result = await service.login(loginDto);
 
-      expect(service.validateUser).toHaveBeenCalledWith(
-        loginDto.email,
-        loginDto.password,
-      );
+      expect(service.validateUser).toHaveBeenCalledWith(loginDto.email, loginDto.password);
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: mockUser.id,
         email: mockUser.email,
@@ -166,13 +161,8 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException with invalid credentials', async () => {
       jest.spyOn(service, 'validateUser').mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      expect(service.validateUser).toHaveBeenCalledWith(
-        loginDto.email,
-        loginDto.password,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      expect(service.validateUser).toHaveBeenCalledWith(loginDto.email, loginDto.password);
       expect(jwtService.sign).not.toHaveBeenCalled();
     });
   });

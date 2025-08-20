@@ -1,8 +1,8 @@
 // eslint.config.js
-import tseslint from 'typescript-eslint';
-import eslintPluginPrettier from 'eslint-plugin-prettier';
+const tseslint = require('typescript-eslint');
+const eslintPluginPrettier = require('eslint-plugin-prettier');
 
-export default tseslint.config(
+module.exports = tseslint.config(
   {
     // Configuration globale
     ignores: [
@@ -22,7 +22,7 @@ export default tseslint.config(
       parser: tseslint.parser,
       parserOptions: {
         project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
         sourceType: 'module',
       },
       ecmaVersion: 2022,
