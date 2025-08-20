@@ -1,10 +1,11 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main, develop, refacto]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch: # Permet le déclenchement manuel
 
 jobs:
   lint:
@@ -139,3 +140,79 @@ jobs:
       
       - name: Check for vulnerabilities
         run: npx audit-ci --config ./audit-ci.json || true
+
+  # Déploiement automatique vers Railway (staging)
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [lint, build, test, e2e-tests, security-scan]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    environment: staging
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Deploy to Railway (Staging)
+        run: railway up --service=${{ secrets.RAILWAY_STAGING_SERVICE_ID }} --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # Déploiement automatique vers Railway (production)
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [lint, build, test, e2e-tests, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Deploy to Railway (Production)
+        run: railway up --service=${{ secrets.RAILWAY_PRODUCTION_SERVICE_ID }} --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # Déploiement manuel via bouton GitHub Actions
+  manual-deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Deploy to Railway
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Deploying to PRODUCTION..."
+            railway up --service=${{ secrets.RAILWAY_PRODUCTION_SERVICE_ID }} --detach
+          else
+            echo "Deploying to STAGING..."
+            railway up --service=${{ secrets.RAILWAY_STAGING_SERVICE_ID }} --detach
+          fi
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
