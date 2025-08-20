@@ -157,12 +157,12 @@ jobs:
       
       - name: Deploy to Railway (Staging)
         run: |
-          echo "Authenticating with Railway..."
-          railway login --token ${{ secrets.RAILWAY_TOKEN }}
-          echo "Linking to Railway project..."
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          echo "Setting up Railway project configuration..."
+          echo '{"project": "${{ secrets.RAILWAY_PROJECT_ID }}"}' > railway.json
           echo "Deploying to staging environment..."
           railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
   # Déploiement automatique vers Railway (production)
   deploy-production:
@@ -180,12 +180,12 @@ jobs:
       
       - name: Deploy to Railway (Production)
         run: |
-          echo "Authenticating with Railway..."
-          railway login --token ${{ secrets.RAILWAY_TOKEN }}
-          echo "Linking to Railway project..."
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          echo "Setting up Railway project configuration..."
+          echo '{"project": "${{ secrets.RAILWAY_PROJECT_ID }}"}' > railway.json
           echo "Deploying to production environment..."
           railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
   # Déploiement manuel via bouton GitHub Actions
   manual-deploy:
@@ -215,13 +215,13 @@ jobs:
       
       - name: Deploy to Railway
         run: |
-          echo "Authenticating with Railway..."
-          railway login --token ${{ secrets.RAILWAY_TOKEN }}
-          echo "Linking to Railway project..."
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          echo "Setting up Railway project configuration..."
+          echo '{"project": "${{ secrets.RAILWAY_PROJECT_ID }}"}' > railway.json
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "Deploying to PRODUCTION..."
           else
             echo "Deploying to STAGING..."
           fi
           railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
