@@ -16,6 +16,9 @@ async function bootstrap(): Promise<void> {
 
   app.enableCors(); // Active CORS pour toutes les origines
 
+  // Définir un préfixe global pour l'API
+  app.setGlobalPrefix('api');
+
   const config = new DocumentBuilder()
     .setTitle('GuildMaster API')
     .setDescription('The GuildMaster API description')
@@ -23,7 +26,7 @@ async function bootstrap(): Promise<void> {
     .addTag('guild-master')
     .build();
   const documentFactory = (): OpenAPIObject => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('docs', app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3000);
 }
