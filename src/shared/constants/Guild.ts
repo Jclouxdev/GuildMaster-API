@@ -1,0 +1,1 @@
+export const MAXIMUM_GUILD_MEMBERS_POSSIBLE = 200;

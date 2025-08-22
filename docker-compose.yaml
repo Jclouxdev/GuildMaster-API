@@ -1,0 +1,36 @@
+services:
+  api:
+    build: .
+    # First time
+    command: >
+      sh -c "npm install && npm run start"
+    # After first time
+    # command: >
+    #   sh -c "npm run start"
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - '3000:3000'
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    env_file:
+      - .env
+    image: postgres
+    restart: on-failure
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    environment:
+      - 'POSTGRES_PASSWORD=${DB_ROOT_PASSWORD}'
+      - 'POSTGRES_USER=${DB_USER}'
+      - 'POSTGRES_DB=${DB_NAME}'
+    volumes:
+      - ./database:/var/lib/postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+
+volumes:
+  database:
